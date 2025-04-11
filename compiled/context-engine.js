@@ -110,7 +110,9 @@ class Commands {
         this.currentSceneIndex = initialSceneIndex;
         // Add event listeners for key tracking
         document.addEventListener('keydown', (event) => {
-            this.keys[event.key] = true;
+            if (!this.keys[event.key]) { // Trigger only if not already pressed
+                this.keys[event.key] = true;
+            }
         });
         document.addEventListener('keyup', (event) => {
             this.keys[event.key] = false;

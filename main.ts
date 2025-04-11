@@ -203,7 +203,9 @@ class Commands {
 
         // Add event listeners for key tracking
         document.addEventListener('keydown', (event) => {
-            this.keys[event.key] = true;
+            if (!this.keys[event.key]) { // Trigger only if not already pressed
+                this.keys[event.key] = true;
+            }
         });
 
         document.addEventListener('keyup', (event) => {
@@ -238,19 +240,19 @@ function ctxengnloop(scenes: Scene[], commands: Commands, ctx: CanvasRenderingCo
 }
 
 function contextEngine(scenes: Scene[], initialSceneIndex: number = 0) {
-    let canvas = document.createElement('canvas');
+    const canvas = document.createElement('canvas');
     canvas.width = 800; // Default width, can be adjusted
     canvas.height = 600; // Default height, can be adjusted
 
     document.body.appendChild(canvas);
-    let ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
 
     if (!ctx) {
         throw new Error('Failed to get canvas context');
     }
 
-    let other = new otherCtx(ctx);
-    let commands = new Commands(scenes, initialSceneIndex);
+    const other = new otherCtx(ctx);
+    const commands = new Commands(scenes, initialSceneIndex);
 
     const startTime = performance.now();
     ctxengnloop(scenes, commands, ctx, startTime, other);

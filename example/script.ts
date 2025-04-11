@@ -21,15 +21,19 @@ class theCoolScene extends Scene {
     update(deltaTime: number, commands: Commands) {
         if (this.keys['ArrowUp']) {
             this.score += 1;
+            this.keys['ArrowUp'] = false; // Event happens only once
         }
         if (this.keys['ArrowDown']) {
             this.score -= 1;
+            this.keys['ArrowDown'] = false; // Event happens only once
         }
         if (this.keys['r']) {
             this.score = 0;
+            this.keys['r'] = false; // Event happens only once
         }
         if (this.keys['Escape']) {
             commands.switchScene(1);
+            this.keys['Escape'] = false; // Event happens only once
         }
     }
 
@@ -49,10 +53,12 @@ class otherScene extends Scene {
     update(deltaTime: number, commands: Commands) {
         if (commands.keys['Escape']) { // another simple way to get keys
             commands.switchScene(0);
+            commands.keys['Escape'] = false; // Event happens only once
         }
     }
 
     draw(otherCtxx: otherCtx) {
+        otherCtxx.clearBackground('black');
         otherCtxx.drawText(10, 10, "Woah you found the other scene!", 'white', 20);
         otherCtxx.drawText(10, 40, "Press Escape to go back", 'white', 20);
     }
