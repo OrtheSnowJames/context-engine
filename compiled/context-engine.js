@@ -1,4 +1,4 @@
-class otherCtx {
+export class otherCtx {
     constructor(ctx) {
         this.cameraX = 0;
         this.cameraY = 0;
@@ -68,6 +68,20 @@ class otherCtx {
     drawImageScaled(image, x, y, width, height) {
         this.ctx.drawImage(image, (x - this.cameraX) * this.zoom, (y - this.cameraY) * this.zoom, width * this.zoom, height * this.zoom);
     }
+    drawTriangles(vertices, indices, color) {
+        this.ctx.fillStyle = color;
+        this.ctx.beginPath();
+        for (let i = 0; i < indices.length; i += 3) {
+            const v1 = vertices[indices[i]];
+            const v2 = vertices[indices[i + 1]];
+            const v3 = vertices[indices[i + 2]];
+            this.ctx.moveTo((v1.dstX - this.cameraX) * this.zoom, (v1.dstY - this.cameraY) * this.zoom);
+            this.ctx.lineTo((v2.dstX - this.cameraX) * this.zoom, (v2.dstY - this.cameraY) * this.zoom);
+            this.ctx.lineTo((v3.dstX - this.cameraX) * this.zoom, (v3.dstY - this.cameraY) * this.zoom);
+        }
+        this.ctx.closePath();
+        this.ctx.fill();
+    }
     drawImageRotated(image, x, y, width, height, angle) {
         this.ctx.save();
         this.ctx.translate((x - this.cameraX) * this.zoom + (width * this.zoom) / 2, (y - this.cameraY) * this.zoom + (height * this.zoom) / 2);
@@ -92,9 +106,7 @@ class otherCtx {
         this.ctx.restore();
     }
 }
-
 class Scene {
-    constructor() {}
     update(deltaTime, commands) {
         // Override this method in scenes
     }
@@ -102,8 +114,19 @@ class Scene {
         // Override this method in scenes
     }
 }
-
-class Commands {
+export class Vertex {
+    constructor(dstX, dstY, srcX, srcY, colorR, colorG, colorB, colorA) {
+        this.dstX = dstX;
+        this.dstY = dstY;
+        this.srcX = srcX;
+        this.srcY = srcY;
+        this.colorR = colorR;
+        this.colorG = colorG;
+        this.colorB = colorB;
+        this.colorA = colorA;
+    }
+}
+export class Commands {
     constructor(scenes, initialSceneIndex = 0) {
         this.keys = {}; // Track pressed keys
         this.scenes = scenes;
@@ -121,7 +144,8 @@ class Commands {
     switchScene(index) {
         if (index >= 0 && index < this.scenes.length) {
             this.currentSceneIndex = index;
-        } else {
+        }
+        else {
             console.error(`Invalid scene index: ${index}`);
         }
     }
@@ -129,8 +153,7 @@ class Commands {
         return this.currentSceneIndex;
     }
 }
-
-function ctxengnloop(scenes, commands, ctx, lastTime, other) {
+export function ctxengnloop(scenes, commands, ctx, lastTime, other) {
     const currentTime = performance.now();
     const deltaTime = (currentTime - lastTime) / 1000;
     other.updateCamera(deltaTime); // Smoothly update the camera position
@@ -139,8 +162,7 @@ function ctxengnloop(scenes, commands, ctx, lastTime, other) {
     currentScene.draw(other); // Pass the otherCtx instance
     requestAnimationFrame(() => ctxengnloop(scenes, commands, ctx, currentTime, other));
 }
-
-function contextEngine(scenes, initialSceneIndex = 0) {
+export function contextEngine(scenes, initialSceneIndex = 0) {
     const canvas = document.createElement('canvas');
     canvas.width = 800; // Default width, can be adjusted
     canvas.height = 600; // Default height, can be adjusted

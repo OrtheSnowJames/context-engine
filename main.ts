@@ -1,4 +1,4 @@
-class otherCtx {
+export class otherCtx {
     private ctx: CanvasRenderingContext2D;
     private cameraX: number = 0;
     private cameraY: number = 0;
@@ -124,6 +124,33 @@ class otherCtx {
         );
     }
 
+    drawTriangles(vertices: Vertex[], indices: number[], color: string) {
+        this.ctx.fillStyle = color;
+        this.ctx.beginPath();
+
+        for (let i = 0; i < indices.length; i += 3) {
+            const v1 = vertices[indices[i]];
+            const v2 = vertices[indices[i + 1]];
+            const v3 = vertices[indices[i + 2]];
+
+            this.ctx.moveTo(
+                (v1.dstX - this.cameraX) * this.zoom,
+                (v1.dstY - this.cameraY) * this.zoom
+            );
+            this.ctx.lineTo(
+                (v2.dstX - this.cameraX) * this.zoom,
+                (v2.dstY - this.cameraY) * this.zoom
+            );
+            this.ctx.lineTo(
+                (v3.dstX - this.cameraX) * this.zoom,
+                (v3.dstY - this.cameraY) * this.zoom
+            );
+        }
+
+        this.ctx.closePath();
+        this.ctx.fill();
+    }
+
     drawImageRotated(image: HTMLImageElement, x: number, y: number, width: number, height: number, angle: number) {
         this.ctx.save();
         this.ctx.translate(
@@ -192,7 +219,39 @@ class Scene {
     }
 }
 
-class Commands {
+export class Vertex {
+    dstX: number;
+    dstY: number;
+    srcX: number;
+    srcY: number;
+    colorR: number;
+    colorG: number;
+    colorB: number;
+    colorA: number;
+
+    constructor(
+        dstX: number,
+        dstY: number,
+        srcX: number,
+        srcY: number,
+        colorR: number,
+        colorG: number,
+        colorB: number,
+        colorA: number
+    ) {
+        this.dstX = dstX;
+        this.dstY = dstY;
+        this.srcX = srcX;
+        this.srcY = srcY;
+        this.colorR = colorR;
+        this.colorG = colorG;
+        this.colorB = colorB;
+        this.colorA = colorA;
+    }
+}
+
+
+export class Commands {
     private scenes: Scene[];
     private currentSceneIndex: number;
     public keys: { [key: string]: boolean } = {}; // Track pressed keys
@@ -226,7 +285,7 @@ class Commands {
     }
 }
 
-function ctxengnloop(scenes: Scene[], commands: Commands, ctx: CanvasRenderingContext2D, lastTime: number, other: otherCtx) {
+export function ctxengnloop(scenes: Scene[], commands: Commands, ctx: CanvasRenderingContext2D, lastTime: number, other: otherCtx) {
     const currentTime = performance.now();
     const deltaTime = (currentTime - lastTime) / 1000;
 
@@ -239,7 +298,7 @@ function ctxengnloop(scenes: Scene[], commands: Commands, ctx: CanvasRenderingCo
     requestAnimationFrame(() => ctxengnloop(scenes, commands, ctx, currentTime, other));
 }
 
-function contextEngine(scenes: Scene[], initialSceneIndex: number = 0) {
+export function contextEngine(scenes: Scene[], initialSceneIndex: number = 0) {
     const canvas = document.createElement('canvas');
     canvas.width = 800; // Default width, can be adjusted
     canvas.height = 600; // Default height, can be adjusted
