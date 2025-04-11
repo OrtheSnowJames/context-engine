@@ -1,7 +1,8 @@
 // can set score high or low...
 class theCoolScene extends Scene {
-    private keys: { [key: string]: boolean } = {};
-    private score: number = 0;
+    score = 0;
+    textfield = new OCtxTextField(0, 100, 200, 50, 20);
+    button = new OCtxButton(0, 300, 200, 50, "submit");
 
     constructor() {
         super();
@@ -9,31 +10,40 @@ class theCoolScene extends Scene {
     }
 
     init() {
-        document.addEventListener('keydown', (event) => {
-            this.keys[event.key] = true;
-        });
-
-        document.addEventListener('keyup', (event) => {
-            this.keys[event.key] = false;
-        });
+        this.textfield.setPlaceholder("enter something");
     }
 
     update(deltaTime: number, commands: Commands) {
-        if (this.keys['ArrowUp']) {
+        this.textfield.update(commands, deltaTime);
+        this.button.update(commands);
+
+        if (commands.keys['ArrowUp']) {
             this.score += 1;
-            this.keys['ArrowUp'] = false; // Event happens only once
+            commands.keys['ArrowUp'] = false; // Event happens only once
         }
-        if (this.keys['ArrowDown']) {
+        if (commands.keys['ArrowDown']) {
             this.score -= 1;
-            this.keys['ArrowDown'] = false; // Event happens only once
+            commands.keys['ArrowDown'] = false; // Event happens only once
         }
-        if (this.keys['r']) {
+        if (commands.keys['r']) {
             this.score = 0;
-            this.keys['r'] = false; // Event happens only once
+            commands.keys['r'] = false; // Event happens only once
         }
-        if (this.keys['Escape']) {
+        if (commands.keys['Escape']) {
             commands.switchScene(1);
-            this.keys['Escape'] = false; // Event happens only once
+            commands.keys['Escape'] = false; // Event happens only once
+        }
+
+        if (this.button.isPressed) {
+            if (!(this.textfield.getText() === "")) {
+                try {
+                    eval(this.textfield.getText());
+                } catch (e) {
+                    this.textfield.deactivate();
+                    this.textfield.text = "";
+                    this.textfield.setPlaceholder("Invalid input, I only accept js code");
+                }
+            }
         }
     }
 
@@ -42,6 +52,8 @@ class theCoolScene extends Scene {
         otherCtxx.drawText(10, 40, "Press Arrow Up to increase score", 'white', 20);
         otherCtxx.drawText(10, 70, "Press Arrow Down to decrease score", 'white', 20);
         otherCtxx.drawText(10, 100, "Press R to reset score", 'white', 20);
+        this.textfield.draw(otherCtxx);
+        this.button.draw(otherCtxx);
     }
 }
 

@@ -145,11 +145,33 @@ Called every frame to render the scene.
 
 - **ctx**: An instance of the `otherCtx` class, providing drawing utilities.
 
+#### `contextEngine(scenes: Scene[], initialSceneIndex: number = 0, canvasWidth: number = 800, canvasHeight: number = 600)`
+The game starter.
+
+- **scenes**: An array of classes that extend Scene. The scenes of the game.
+- **initialSceneIndex**: A number that tells the game at which index of the `scenes` to start at.
+- **canvasWidth**: How big (in px) the canvas will be horizontally.
+- **canvasHeight**: How big (in px) the canvas will be vertically.
+
 ---
 
 ## `Commands` Class
 
 The `Commands` class allows scenes to interact with the engine, such as switching scenes.
+
+### Vars
+
+#### keys
+Which keys on the keyboard are currently being pressed. Uses the js names for keys.
+
+#### mouseX && mouseY
+The position of the mouse on the canvas. Will not work if you update canvas position/size during gametime.
+
+#### mouseDown
+A boolean representing if the mouse is up or down. down = true, up = false.
+
+#### mouseReleased
+The opposite of mouseDown. down = false, up = true.
 
 ### Methods
 
@@ -160,6 +182,37 @@ Switches to the scene at the specified index.
 
 #### `getCurrentSceneIndex()`
 Returns the index of the current scene.
+
+---
+
+## UI Components
+
+### Button (OCtxButton)
+
+The engine includes a button component for creating interactive UI elements. For detailed button documentation, see [UI Documentation](ui.md).
+
+Basic button usage:
+```typescript
+class MyScene extends Scene {
+    private button: OCtxButton;
+
+    constructor() {
+        super();
+        this.button = new OCtxButton(100, 100, 200, 50, "Click Me!");
+    }
+
+    update(deltaTime: number, commands: Commands) {
+        this.button.update(commands);
+        if (this.button.isClicked(commands)) {
+            // Handle button click
+        }
+    }
+
+    draw(ctx: otherCtx) {
+        this.button.draw(ctx);
+    }
+}
+```
 
 ---
 

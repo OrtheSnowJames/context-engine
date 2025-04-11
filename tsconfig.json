@@ -1,12 +1,17 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "es6",
-    "outDir": "./",
-    "strict": true
+    "target": "es6",                // Modern JS (you can use "es5" for older support)
+    "module": "none",               // 👈 This disables ES modules
+    "outDir": "./compiled",         // Output directory
+    "strict": true,                 // Good practice
+    "removeComments": false,        // Optional: strip comments from output
+    "sourceMap": false              // Optional: disable .map files
   },
+  "include": [
+    "./**/*.ts"
+  ],
   "exclude": [
-    "./compiled"
+    "./compiled",
+    "node_modules"
   ]
 }
-
