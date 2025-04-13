@@ -23,5 +23,3 @@ There are three different ways to import the Context Engine:
     ```javascript
     import { ... } from './compiled/context-engine.mjs'
     ```
-
-Note: installing from the npm package (npm i context-engine) will download the .mjs file.

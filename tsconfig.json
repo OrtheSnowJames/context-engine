@@ -5,7 +5,10 @@
     "outDir": "./compiled",         // Output directory
     "strict": true,                 // Good practice
     "removeComments": false,        // Optional: strip comments from output
-    "sourceMap": false              // Optional: disable .map files
+    "sourceMap": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    // Optional: disable .map files
   },
   "include": [
     "./**/*.ts"

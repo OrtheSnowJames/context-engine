@@ -1,0 +1,29 @@
+{
+  "name": "context-engine",
+  "version": "0.1.1",
+  "description": "Low-Level JS/TS game engine with UI and Scenes",
+  "main": "compiled/context-engine.mjs",
+  "module": "compiled/context-engine.mjs",
+  "types": "compiled/context-engine.d.ts",
+  "directories": {
+    "doc": "docs",
+    "example": "example"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OrtheSnowJames/context-engine.git"
+  },
+  "keywords": [
+    "game",
+    "engine"
+  ],
+  "author": "James Yacoube",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/OrtheSnowJames/context-engine/issues"
+  },
+  "homepage": "https://github.com/OrtheSnowJames/context-engine#readme"
+}
