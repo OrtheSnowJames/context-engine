@@ -1,5 +1,5 @@
 "use strict";
-class otherCtx {
+export class otherCtx {
     ctx;
     cameraX = 0;
     cameraY = 0;
@@ -21,23 +21,51 @@ class otherCtx {
     setZoom(zoom) {
         this.zoom = zoom;
     }
-    drawRect(x, y, width, height, color) {
+    drawRect(x, y, width, height, color, cameraPos = true, cameraZoom = true) {
         this.ctx.fillStyle = color;
-        this.ctx.fillRect((x - this.cameraX) * this.zoom, (y - this.cameraY) * this.zoom, width * this.zoom, height * this.zoom);
+        const posX = cameraPos ? (x - this.cameraX) * (cameraZoom ? this.zoom : 1) : x;
+        const posY = cameraPos ? (y - this.cameraY) * (cameraZoom ? this.zoom : 1) : y;
+        const zoom = cameraZoom ? this.zoom : 1;
+        this.ctx.fillRect(posX, posY, width * zoom, height * zoom);
     }
-    drawCircle(x, y, radius, color) {
+    drawCircle(x, y, radius, color, cameraPos = true, cameraZoom = true) {
         this.ctx.fillStyle = color;
         this.ctx.beginPath();
-        this.ctx.arc((x - this.cameraX) * this.zoom, (y - this.cameraY) * this.zoom, radius * this.zoom, 0, Math.PI * 2);
+        const posX = cameraPos ? (x - this.cameraX) * (cameraZoom ? this.zoom : 1) : x;
+        const posY = cameraPos ? (y - this.cameraY) * (cameraZoom ? this.zoom : 1) : y;
+        const zoom = cameraZoom ? this.zoom : 1;
+        this.ctx.arc(posX, posY, radius * zoom, 0, Math.PI * 2);
         this.ctx.fill();
     }
-    drawText(x, y, text, color, fontSize) {
+    drawText(x, y, text, color, fontSize, cameraPos = true, cameraZoom = true) {
         this.ctx.fillStyle = color;
-        this.ctx.font = `${fontSize * this.zoom}px Arial`;
-        this.ctx.fillText(text, (x - this.cameraX) * this.zoom, (y - this.cameraY) * this.zoom);
+        const zoom = cameraZoom ? this.zoom : 1;
+        const posX = cameraPos ? (x - this.cameraX) * zoom : x;
+        const posY = cameraPos ? (y - this.cameraY) * zoom : y;
+        this.ctx.font = `${fontSize * zoom}px Arial`;
+        this.ctx.fillText(text, posX, posY);
     }
-    drawImage(image, x, y, width, height) {
-        this.ctx.drawImage(image, (x - this.cameraX) * this.zoom, (y - this.cameraY) * this.zoom, width * this.zoom, height * this.zoom);
+    drawTextRotated(x, y, text, color, fontSize, angle, cameraPos = true, cameraZoom = true) {
+        this.ctx.fillStyle = color;
+        const zoom = cameraZoom ? this.zoom : 1;
+        const posX = cameraPos ? (x - this.cameraX) * zoom : x;
+        const posY = cameraPos ? (y - this.cameraY) * zoom : y;
+        this.ctx.font = `${fontSize * zoom}px Arial`;
+        this.ctx.save();
+        this.ctx.translate(posX, posY);
+        this.ctx.rotate(angle);
+        this.ctx.fillText(text, 0, 0);
+        this.ctx.restore();
+    }
+    drawTextWithBackground(x, y, text, color, bgcolor, fontSize, cameraPos = true, cameraZoom = true, padding = 5) {
+        this.drawRect(x, y, this.ctx.measureText(text).width + padding * 2, fontSize + padding * 2, bgcolor, cameraPos, cameraZoom);
+        this.drawText(x + padding, y + padding, text, color, fontSize, cameraPos, cameraZoom);
+    }
+    drawImage(image, x, y, width, height, cameraPos = true, cameraZoom = true) {
+        const posX = cameraPos ? (x - this.cameraX) * (cameraZoom ? this.zoom : 1) : x;
+        const posY = cameraPos ? (y - this.cameraY) * (cameraZoom ? this.zoom : 1) : y;
+        const zoom = cameraZoom ? this.zoom : 1;
+        this.ctx.drawImage(image, posX, posY, width * zoom, height * zoom);
     }
     rawCtx() {
         return this.ctx;
@@ -50,73 +78,124 @@ class otherCtx {
         this.ctx.fillStyle = color;
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
-    drawLine(x1, y1, x2, y2, color) {
+    drawLine(x1, y1, x2, y2, color, cameraPos = true, cameraZoom = true) {
         this.ctx.strokeStyle = color;
         this.ctx.beginPath();
-        this.ctx.moveTo((x1 - this.cameraX) * this.zoom, (y1 - this.cameraY) * this.zoom);
-        this.ctx.lineTo((x2 - this.cameraX) * this.zoom, (y2 - this.cameraY) * this.zoom);
+        const startX = cameraPos ? (x1 - this.cameraX) * (cameraZoom ? this.zoom : 1) : x1;
+        const startY = cameraPos ? (y1 - this.cameraY) * (cameraZoom ? this.zoom : 1) : y1;
+        const endX = cameraPos ? (x2 - this.cameraX) * (cameraZoom ? this.zoom : 1) : x2;
+        const endY = cameraPos ? (y2 - this.cameraY) * (cameraZoom ? this.zoom : 1) : y2;
+        this.ctx.moveTo(startX, startY);
+        this.ctx.lineTo(endX, endY);
         this.ctx.stroke();
     }
-    drawPolygon(points, color) {
+    drawPolygon(points, color, cameraPos = true, cameraZoom = true) {
         this.ctx.fillStyle = color;
         this.ctx.beginPath();
-        this.ctx.moveTo((points[0].x - this.cameraX) * this.zoom, (points[0].y - this.cameraY) * this.zoom);
+        const zoom = cameraZoom ? this.zoom : 1;
+        const startX = cameraPos ? (points[0].x - this.cameraX) * zoom : points[0].x;
+        const startY = cameraPos ? (points[0].y - this.cameraY) * zoom : points[0].y;
+        this.ctx.moveTo(startX, startY);
         for (let i = 1; i < points.length; i++) {
-            this.ctx.lineTo((points[i].x - this.cameraX) * this.zoom, (points[i].y - this.cameraY) * this.zoom);
+            const posX = cameraPos ? (points[i].x - this.cameraX) * zoom : points[i].x;
+            const posY = cameraPos ? (points[i].y - this.cameraY) * zoom : points[i].y;
+            this.ctx.lineTo(posX, posY);
         }
         this.ctx.closePath();
         this.ctx.fill();
     }
-    drawImageScaled(image, x, y, width, height) {
-        this.ctx.drawImage(image, (x - this.cameraX) * this.zoom, (y - this.cameraY) * this.zoom, width * this.zoom, height * this.zoom);
+    drawImageScaled(image, x, y, width, height, cameraPos = true, cameraZoom = true) {
+        const posX = cameraPos ? (x - this.cameraX) * (cameraZoom ? this.zoom : 1) : x;
+        const posY = cameraPos ? (y - this.cameraY) * (cameraZoom ? this.zoom : 1) : y;
+        const zoom = cameraZoom ? this.zoom : 1;
+        this.ctx.drawImage(image, posX, posY, width * zoom, height * zoom);
     }
-    drawTriangles(vertices, indices, color) {
+    drawTriangles(vertices, indices, color, cameraPos = true, cameraZoom = true) {
         this.ctx.fillStyle = color;
         this.ctx.beginPath();
+        const zoom = cameraZoom ? this.zoom : 1;
         for (let i = 0; i < indices.length; i += 3) {
             const v1 = vertices[indices[i]];
             const v2 = vertices[indices[i + 1]];
             const v3 = vertices[indices[i + 2]];
-            this.ctx.moveTo((v1.dstX - this.cameraX) * this.zoom, (v1.dstY - this.cameraY) * this.zoom);
-            this.ctx.lineTo((v2.dstX - this.cameraX) * this.zoom, (v2.dstY - this.cameraY) * this.zoom);
-            this.ctx.lineTo((v3.dstX - this.cameraX) * this.zoom, (v3.dstY - this.cameraY) * this.zoom);
+            const x1 = cameraPos ? (v1.dstX - this.cameraX) * zoom : v1.dstX;
+            const y1 = cameraPos ? (v1.dstY - this.cameraY) * zoom : v1.dstY;
+            const x2 = cameraPos ? (v2.dstX - this.cameraX) * zoom : v2.dstX;
+            const y2 = cameraPos ? (v2.dstY - this.cameraY) * zoom : v2.dstY;
+            const x3 = cameraPos ? (v3.dstX - this.cameraX) * zoom : v3.dstX;
+            const y3 = cameraPos ? (v3.dstY - this.cameraY) * zoom : v3.dstY;
+            this.ctx.moveTo(x1, y1);
+            this.ctx.lineTo(x2, y2);
+            this.ctx.lineTo(x3, y3);
         }
         this.ctx.closePath();
         this.ctx.fill();
     }
-    drawImageRotated(image, x, y, width, height, angle) {
+    drawImageRotated(image, x, y, width, height, angle, cameraPos = true, cameraZoom = true) {
         this.ctx.save();
-        this.ctx.translate((x - this.cameraX) * this.zoom + (width * this.zoom) / 2, (y - this.cameraY) * this.zoom + (height * this.zoom) / 2);
+        const zoom = cameraZoom ? this.zoom : 1;
+        const posX = cameraPos ? (x - this.cameraX) * zoom : x;
+        const posY = cameraPos ? (y - this.cameraY) * zoom : y;
+        this.ctx.translate(posX + (width * zoom) / 2, posY + (height * zoom) / 2);
         this.ctx.rotate(angle);
-        this.ctx.drawImage(image, -(width * this.zoom) / 2, -(height * this.zoom) / 2, width * this.zoom, height * this.zoom);
+        this.ctx.drawImage(image, -(width * zoom) / 2, -(height * zoom) / 2, width * zoom, height * zoom);
         this.ctx.restore();
     }
-    drawImageWithAlpha(image, x, y, width, height, alpha) {
+    drawImageWithAlpha(image, x, y, width, height, alpha, cameraPos = true, cameraZoom = true) {
         this.ctx.save();
         this.ctx.globalAlpha = alpha;
-        this.ctx.drawImage(image, (x - this.cameraX) * this.zoom, (y - this.cameraY) * this.zoom, width * this.zoom, height * this.zoom);
+        const posX = cameraPos ? (x - this.cameraX) * (cameraZoom ? this.zoom : 1) : x;
+        const posY = cameraPos ? (y - this.cameraY) * (cameraZoom ? this.zoom : 1) : y;
+        const zoom = cameraZoom ? this.zoom : 1;
+        this.ctx.drawImage(image, posX, posY, width * zoom, height * zoom);
         this.ctx.restore();
     }
-    drawImageWithScale(image, x, y, scaleX, scaleY) {
-        this.ctx.drawImage(image, (x - this.cameraX) * this.zoom, (y - this.cameraY) * this.zoom, image.width * scaleX * this.zoom, image.height * scaleY * this.zoom);
+    drawImageWithScale(image, x, y, scaleX, scaleY, cameraPos = true, cameraZoom = true) {
+        const zoom = cameraZoom ? this.zoom : 1;
+        const posX = cameraPos ? (x - this.cameraX) * zoom : x;
+        const posY = cameraPos ? (y - this.cameraY) * zoom : y;
+        this.ctx.drawImage(image, posX, posY, image.width * scaleX * zoom, image.height * scaleY * zoom);
     }
-    drawImageWithRotation(image, x, y, width, height, angle) {
+    drawImageWithRotation(image, x, y, width, height, angle, cameraPos = true, cameraZoom = true) {
         this.ctx.save();
-        this.ctx.translate((x - this.cameraX) * this.zoom + (width * this.zoom) / 2, (y - this.cameraY) * this.zoom + (height * this.zoom) / 2);
+        const zoom = cameraZoom ? this.zoom : 1;
+        const posX = cameraPos ? (x - this.cameraX) * zoom : x;
+        const posY = cameraPos ? (y - this.cameraY) * zoom : y;
+        this.ctx.translate(posX + (width * zoom) / 2, posY + (height * zoom) / 2);
         this.ctx.rotate(angle);
-        this.ctx.drawImage(image, -(width * this.zoom) / 2, -(height * this.zoom) / 2, width * this.zoom, height * this.zoom);
+        this.ctx.drawImage(image, -(width * zoom) / 2, -(height * zoom) / 2, width * zoom, height * zoom);
         this.ctx.restore();
+    }
+    drawTriangle(x1, y1, x2, y2, x3, y3, color, cameraPos = true, cameraZoom = true) {
+        const points = [
+            { x: x1, y: y1 },
+            { x: x2, y: y2 },
+            { x: x3, y: y3 }
+        ];
+        this.drawPolygon(points, color, cameraPos, cameraZoom);
     }
 }
-class Scene {
+otherCtx.prototype.setTextAlign = function (align = "left") {
+    this.ctx.textAlign = align;          // new helper
+};
+export class Scene {
+    async onLoad(commands) {
+        // Override this method in scenes to handle asynchronous initialization when the scene starts
+    }
+
+    async onExit(commands) {
+        // Override this method in scenes to handle asynchronous cleanup when the scene is exited
+    }
+
     update(deltaTime, commands) {
         // Override this method in scenes
     }
+
     draw(ctx) {
         // Override this method in scenes
     }
 }
-class OCtxButton {
+export class OCtxButton {
     bounds;
     label;
     backgroundColor = '#D3D3D3'; // LightGray
@@ -134,6 +213,7 @@ class OCtxButton {
     invisible = false;
     uneditable = false;
     useRoundedCorners = true;
+    wasClicked = false; // Track if click was already processed
     constructor(x, y, width, height, label) {
         this.bounds = { x, y, width, height };
         this.label = label;
@@ -144,6 +224,14 @@ class OCtxButton {
         this.pressedColor = pressed;
         this.borderColor = border;
         this.textColor = text;
+    }
+    deactivate() {
+        this.enabled = false;
+        this.invisible = true;
+    }
+    activate() {
+        this.enabled = true;
+        this.invisible = false;
     }
     update(commands) {
         if (this.uneditable)
@@ -157,6 +245,17 @@ class OCtxButton {
         const mouseY = commands.mouseY;
         this.isHovered = this.pointInRect(mouseX, mouseY);
         this.isPressed = this.isHovered && commands.mouseDown;
+        if (this.isPressed) {
+            navigator.virtualKeyboard.show();
+        }
+        else {
+            navigator.virtualKeyboard.hide();
+        }
+        // Reset wasClicked flag when mouse is pressed down
+        if (commands.mouseDown) {
+            this.wasClicked = false;
+        }
+        
         let targetProgress = 0.0;
         if (this.isPressed)
             targetProgress = 1.0;
@@ -175,7 +274,7 @@ class OCtxButton {
                 this.animationProgress = targetProgress;
         }
     }
-    draw(ctx) {
+    draw(ctx, cameraPos = true, cameraZoom = true) {
         if (this.invisible)
             return;
         let currentColor = this.backgroundColor;
@@ -196,45 +295,73 @@ class OCtxButton {
         const offsetX = this.isPressed ? 1 : 0;
         const offsetY = this.isPressed ? 1 : 0;
         if (this.useRoundedCorners) {
-            // Draw rounded rectangle background
-            this.drawRoundedRect(ctx, this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height, this.cornerRadius, currentColor);
-            // Draw border
-            this.drawRoundedRectBorder(ctx, this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height, this.cornerRadius, this.borderColor, borderThickness);
+            ctx.drawPolygon(this.getRoundedRectPoints(this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height, this.cornerRadius), currentColor, cameraPos, cameraZoom);
+            this.drawRoundedRectBorder(ctx, this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height, this.cornerRadius, this.borderColor, borderThickness, cameraPos, cameraZoom);
         }
         else {
-            ctx.drawRect(this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height, currentColor);
-            // Draw border
-            this.drawRectBorder(ctx, this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height, this.borderColor, borderThickness);
+            ctx.drawRect(this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height, currentColor, cameraPos, cameraZoom);
+            this.drawRectBorder(ctx, this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height, this.borderColor, borderThickness, cameraPos, cameraZoom);
         }
-        // Draw text
         const textColor = this.enabled ? this.textColor : this.adjustAlpha(this.textColor, 0.5);
-        ctx.drawText(this.bounds.x + this.bounds.width / 2 + offsetX, this.bounds.y + this.bounds.height / 2 + offsetY, this.label, textColor, this.fontSize);
+        ctx.setTextAlign("center");
+        ctx.drawText(
+            this.bounds.x + this.bounds.width / 2,
+            this.bounds.y + this.bounds.height / 2 + this.fontSize / 3,
+            this.label,
+            textColor,
+            this.fontSize,
+            cameraPos,
+            cameraZoom
+        );
+        ctx.setTextAlign("left");
     }
     isClicked(commands) {
-        return this.enabled && this.isHovered && commands.mouseReleased;
+        // Only return true if enabled, hovered, released, and not already processed
+        if (this.enabled && this.isHovered && commands.mouseReleased && !this.wasClicked) {
+            this.wasClicked = true; // Mark as processed
+            return true;
+        }
+        return false;
     }
     pointInRect(x, y) {
         return x >= this.bounds.x && x <= this.bounds.x + this.bounds.width &&
             y >= this.bounds.y && y <= this.bounds.y + this.bounds.height;
     }
-    drawRoundedRect(ctx, x, y, w, h, r, color) {
-        const points = this.getRoundedRectPoints(x, y, w, h, r);
-        ctx.drawPolygon(points, color);
+    drawRoundedRect(ctx, x, y, w, h, r, color, cameraPos = true, cameraZoom = true) {
+        const zoom = cameraZoom ? ctx.zoom : 1;
+        const points = this.getRoundedRectPoints(
+            cameraPos ? (x - ctx.cameraX) * zoom : x,
+            cameraPos ? (y - ctx.cameraY) * zoom : y,
+            w * zoom,
+            h * zoom,
+            r * zoom
+        );
+        ctx.drawPolygon(points, color, cameraPos, cameraZoom);
     }
-    drawRoundedRectBorder(ctx, x, y, w, h, r, color, thickness) {
-        const points = this.getRoundedRectPoints(x, y, w, h, r);
+    drawRoundedRectBorder(ctx, x, y, w, h, r, color, thickness, cameraPos = true, cameraZoom = true) {
+        const zoom = cameraZoom ? ctx.zoom : 1;
+        const points = this.getRoundedRectPoints(
+            cameraPos ? (x - ctx.cameraX) * zoom : x,
+            cameraPos ? (y - ctx.cameraY) * zoom : y,
+            w * zoom,
+            h * zoom,
+            r * zoom
+        );
         for (let i = 0; i < points.length; i++) {
             const p1 = points[i];
             const p2 = points[(i + 1) % points.length];
-            ctx.drawLine(p1.x, p1.y, p2.x, p2.y, color);
+            ctx.drawLine(p1.x, p1.y, p2.x, p2.y, color, cameraPos, cameraZoom);
         }
     }
-    drawRectBorder(ctx, x, y, w, h, color, thickness) {
+    drawRectBorder(ctx, x, y, w, h, color, thickness, cameraPos = true, cameraZoom = true) {
+        const zoom = cameraZoom ? ctx.zoom : 1;
+        const posX = cameraPos ? (x - ctx.cameraX) * zoom : x;
+        const posY = cameraPos ? (y - ctx.cameraY) * zoom : y;
         for (let i = 0; i < thickness; i++) {
-            ctx.drawLine(x + i, y + i, x + w - i, y + i, color);
-            ctx.drawLine(x + w - i, y + i, x + w - i, y + h - i, color);
-            ctx.drawLine(x + w - i, y + h - i, x + i, y + h - i, color);
-            ctx.drawLine(x + i, y + h - i, x + i, y + i, color);
+            ctx.drawLine(posX + i, posY + i, posX + w - i, posY + i, color, cameraPos, cameraZoom);
+            ctx.drawLine(posX + w - i, posY + i, posX + w - i, posY + h - i, color, cameraPos, cameraZoom);
+            ctx.drawLine(posX + w - i, posY + h - i, posX + i, posY + h - i, color, cameraPos, cameraZoom);
+            ctx.drawLine(posX + i, posY + h - i, posX + i, posY + i, color, cameraPos, cameraZoom);
         }
     }
     getRoundedRectPoints(x, y, w, h, r) {
@@ -276,7 +403,7 @@ class OCtxButton {
         return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
     }
 }
-class OCtxTextField {
+export class OCtxTextField {
     bounds;
     text = "";
     maxLength;
@@ -326,6 +453,36 @@ class OCtxTextField {
     isUneditable() {
         return this.uneditable;
     }
+    
+    async handlePaste() {
+        try {
+            // Get text from clipboard
+            const clipboardText = await navigator.clipboard.readText();
+            
+            if (clipboardText && this.text.length + clipboardText.length <= this.maxLength) {
+                // Insert clipboard text at cursor position
+                this.text = this.text.slice(0, this.cursorPosition) + 
+                            clipboardText + 
+                            this.text.slice(this.cursorPosition);
+                            
+                // Update cursor position
+                this.cursorPosition += clipboardText.length;
+            } else if (clipboardText) {
+                // If text would exceed max length, insert as much as possible.
+                const availableSpace = this.maxLength - this.text.length;
+                if (availableSpace > 0) {
+                    const truncatedPaste = clipboardText.substring(0, availableSpace);
+                    this.text = this.text.slice(0, this.cursorPosition) + 
+                                truncatedPaste + 
+                                this.text.slice(this.cursorPosition);
+                    this.cursorPosition += truncatedPaste.length;
+                }
+            }
+        } catch (error) {
+            console.error("Failed to read clipboard contents:", error);
+        }
+    }
+    
     update(commands, deltaTime) {
         if (this.uneditable)
             return;
@@ -337,6 +494,12 @@ class OCtxTextField {
             this.isActive = this.pointInRect(commands.mouseX, commands.mouseY);
         }
         if (this.isActive) {
+            // Handle Ctrl+V for paste
+            if (commands.keys['v'] && (commands.keys['Control'] || commands.keys['Meta'])) {
+                (async () => {this.handlePaste();})();
+                commands.keys['v'] = false; // Consume the key
+            }
+            
             // Handle character input
             for (const key in commands.keys) {
                 if (commands.keys[key] && key.length === 1) {
@@ -350,14 +513,14 @@ class OCtxTextField {
             // Handle special keys
             if (commands.keys["Backspace"]) {
                 this.backspaceHoldTimer += deltaTime;
-                if (commands.keys["Backspace"] && (this.backspaceHoldTimer === deltaTime || this.backspaceHoldTimer > 0.5)) {
-                    if (this.cursorPosition > 0) {
-                        this.text = this.text.slice(0, this.cursorPosition - 1) + this.text.slice(this.cursorPosition);
-                        this.cursorPosition--;
-                    }
+                const firstPress = this.backspaceHoldTimer === deltaTime;
+                const repeating  = this.backspaceHoldTimer > 0.5 &&            // start repeat
+                                   (this.backspaceHoldTimer % 0.05) < deltaTime; // 20 Hz
+                if ((firstPress || repeating) && this.cursorPosition > 0) {
+                    this.text = this.text.slice(0, this.cursorPosition - 1) + this.text.slice(this.cursorPosition);
+                    this.cursorPosition--;
                 }
-            }
-            else {
+            } else {
                 this.backspaceHoldTimer = 0;
             }
             if (commands.keys["ArrowLeft"]) {
@@ -382,32 +545,32 @@ class OCtxTextField {
             }
         }
     }
-    draw(ctx) {
+    draw(ctx, cameraPos = true, cameraZoom = true) {
         if (this.invisible)
             return;
         // Draw background
-        ctx.drawRect(this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height, this.backgroundColor);
+        ctx.drawRect(this.bounds.x, this.bounds.y, this.bounds.width, this.bounds.height, this.backgroundColor, cameraPos, cameraZoom);
         // Draw border
         const borderColor = this.isActive ? "#FF0000" : this.borderColor;
         const thickness = 2;
         for (let i = 0; i < thickness; i++) {
-            ctx.drawLine(this.bounds.x + i, this.bounds.y + i, this.bounds.x + this.bounds.width - i, this.bounds.y + i, borderColor);
-            ctx.drawLine(this.bounds.x + this.bounds.width - i, this.bounds.y + i, this.bounds.x + this.bounds.width - i, this.bounds.y + this.bounds.height - i, borderColor);
-            ctx.drawLine(this.bounds.x + this.bounds.width - i, this.bounds.y + this.bounds.height - i, this.bounds.x + i, this.bounds.y + this.bounds.height - i, borderColor);
-            ctx.drawLine(this.bounds.x + i, this.bounds.y + this.bounds.height - i, this.bounds.x + i, this.bounds.y + i, borderColor);
+            ctx.drawLine(this.bounds.x + i, this.bounds.y + i, this.bounds.x + this.bounds.width - i, this.bounds.y + i, borderColor, cameraPos, cameraZoom);
+            ctx.drawLine(this.bounds.x + this.bounds.width - i, this.bounds.y + i, this.bounds.x + this.bounds.width - i, this.bounds.y + this.bounds.height - i, borderColor, cameraPos, cameraZoom);
+            ctx.drawLine(this.bounds.x + this.bounds.width - i, this.bounds.y + this.bounds.height - i, this.bounds.x + i, this.bounds.y + this.bounds.height - i, borderColor, cameraPos, cameraZoom);
+            ctx.drawLine(this.bounds.x + i, this.bounds.y + this.bounds.height - i, this.bounds.x + i, this.bounds.y + i, borderColor, cameraPos, cameraZoom);
         }
         // Draw text or placeholder with corrected vertical position
         const textY = this.bounds.y + (this.bounds.height + this.fontSize) / 2;
         if (this.text.length > 0) {
-            ctx.drawText(this.bounds.x + this.paddingLeft, textY, this.text, this.textColor, this.fontSize);
+            ctx.drawText(this.bounds.x + this.paddingLeft, textY, this.text, this.textColor, this.fontSize, cameraPos, cameraZoom);
         }
         else if (this.placeholder) {
-            ctx.drawText(this.bounds.x + this.paddingLeft, textY, this.placeholder, this.placeholderColor, this.fontSize);
+            ctx.drawText(this.bounds.x + this.paddingLeft, textY, this.placeholder, this.placeholderColor, this.fontSize, cameraPos, cameraZoom);
         }
         // Draw cursor with matching alignment
         if (this.isActive && this.cursorBlinkTimer < 0.5) {
             const textWidth = ctx.rawCtx().measureText(this.text.slice(0, this.cursorPosition)).width;
-            ctx.drawLine(this.bounds.x + this.paddingLeft + textWidth, this.bounds.y + (this.bounds.height - this.fontSize) / 2, this.bounds.x + this.paddingLeft + textWidth, this.bounds.y + (this.bounds.height + this.fontSize) / 2, this.textColor);
+            ctx.drawLine(this.bounds.x + this.paddingLeft + textWidth, this.bounds.y + (this.bounds.height - this.fontSize) / 2, this.bounds.x + this.paddingLeft + textWidth, this.bounds.y + (this.bounds.height + this.fontSize) / 2, this.textColor, cameraPos, cameraZoom);
         }
     }
     getText() {
@@ -430,7 +593,7 @@ class OCtxTextField {
             y >= this.bounds.y && y <= this.bounds.y + this.bounds.height;
     }
 }
-class Vertex {
+export class Vertex {
     dstX;
     dstY;
     srcX;
@@ -450,8 +613,9 @@ class Vertex {
         this.colorA = colorA;
     }
 }
-class Commands {
+export class Commands {
     scenes;
+    globals = {}; // global variables across all scenes, ex {"playerSocket": client}
     currentSceneIndex;
     keys = {};
     mouseX = 0;
@@ -490,9 +654,15 @@ class Commands {
     }
     switchScene(index) {
         if (index >= 0 && index < this.scenes.length) {
-            this.currentSceneIndex = index;
-        }
-        else {
+            const currentScene = this.scenes[this.currentSceneIndex];
+            (async () => {
+                if (currentScene) {
+                    await currentScene.onExit(this); // Call onExit for the current scene
+                }
+                this.currentSceneIndex = index;
+                await this.scenes[index].onLoad(this); // Call onLoad for the new scene
+            })();
+        } else {
             console.error(`Invalid scene index: ${index}`);
         }
     }
@@ -500,38 +670,80 @@ class Commands {
         return this.currentSceneIndex;
     }
 }
-function ctxengnloop(scenes, commands, ctx, lastTime, other) {
-    const currentTime = performance.now();
-    const deltaTime = (currentTime - lastTime) / 1000;
-    other.updateCamera(deltaTime); // Smoothly update the camera position
-    const currentScene = scenes[commands.getCurrentSceneIndex()];
-    currentScene.update(deltaTime, commands); // Pass the Commands instance
-    currentScene.draw(other); // Pass the otherCtx instance
-    requestAnimationFrame(() => ctxengnloop(scenes, commands, ctx, currentTime, other));
+
+// New ContextEngine class
+export class ContextEngine {
+    constructor(scenes, initialSceneIndex = 0, canvasWidth = 800, canvasHeight = 600) {
+        // Validation
+        if (!scenes || scenes.length === 0) {
+            throw new Error('No scenes provided');
+        }
+        if (initialSceneIndex < 0 || initialSceneIndex >= scenes.length) {
+            throw new Error('Invalid initial scene index');
+        }
+        if (typeof canvasWidth !== 'number' || typeof canvasHeight !== 'number') {
+            throw new Error('Canvas width and height must be numbers');
+        }
+
+        this.scenes = scenes;
+        this.initialSceneIndex = initialSceneIndex;
+        this.canvasWidth = canvasWidth;
+        this.canvasHeight = canvasHeight;
+        this.canvas = null;
+        this.ctx = null;
+        this.other = null;
+        this.commands = null;
+        this.isRunning = false;
+    }
+
+    initialize() {
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = this.canvasWidth;
+        this.canvas.height = this.canvasHeight;
+        document.body.appendChild(this.canvas);
+        
+        this.ctx = this.canvas.getContext('2d');
+        if (!this.ctx) {
+            throw new Error('Failed to get canvas context');
+        }
+        
+        this.other = new otherCtx(this.ctx);
+        this.commands = new Commands(this.scenes, this.initialSceneIndex);
+        this.commands.bindMouseEvents(this.canvas);
+        this.other.setCamera(0, 0);
+        return this;
+    }
+
+    start() {
+        if (this.isRunning) return;
+        this.isRunning = true;
+        const startTime = performance.now();
+        this.loop(startTime);
+    }
+
+    loop(lastTime) {
+        if (!this.isRunning) return;
+        
+        const currentTime = performance.now();
+        const deltaTime = (currentTime - lastTime) / 1000;
+        
+        this.other.updateCamera(deltaTime);
+        
+        const currentScene = this.scenes[this.commands.getCurrentSceneIndex()];
+        currentScene.update(deltaTime, this.commands);
+        currentScene.draw(this.other);
+        
+        requestAnimationFrame(() => this.loop(currentTime));
+    }
+
+    stop() {
+        this.isRunning = false;
+    }
 }
-function contextEngine(scenes, initialSceneIndex = 0, canvasWidth = 800, canvasHeight = 600) {
-    // some checkers
-    if (!scenes || scenes.length === 0) {
-        throw new Error('No scenes provided');
-    }
-    if (initialSceneIndex < 0 || initialSceneIndex >= scenes.length) {
-        throw new Error('Invalid initial scene index');
-    }
-    if (typeof canvasWidth !== 'number' || typeof canvasHeight !== 'number') {
-        throw new Error('Canvas width and height must be numbers');
-    }
-    const canvas = document.createElement('canvas');
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-    document.body.appendChild(canvas);
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-        throw new Error('Failed to get canvas context');
-    }
-    const other = new otherCtx(ctx);
-    const commands = new Commands(scenes, initialSceneIndex);
-    commands.bindMouseEvents(canvas);
-    other.setCamera(0, 0);
-    const startTime = performance.now();
-    ctxengnloop(scenes, commands, ctx, startTime, other);
+
+// Keep the original function for legacy support, but use the new class internally
+export function contextEngine(scenes, initialSceneIndex = 0, canvasWidth = 800, canvasHeight = 600) {
+    const engine = new ContextEngine(scenes, initialSceneIndex, canvasWidth, canvasHeight);
+    engine.initialize().start();
+    return engine; // Return the engine instance for advanced usage
 }
